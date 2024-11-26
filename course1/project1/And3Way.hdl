@@ -1,0 +1,12 @@
+/**
+ * 3 way And gate:
+ * out = a And b And c
+ */
+CHIP And3Way {
+    IN a, b, c;
+    OUT out;
+
+    PARTS:
+    And(a=a, b=b, out=temp);
+    And(a=temp, b=c, out=out);
+}
