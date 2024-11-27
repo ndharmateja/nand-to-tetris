@@ -19,16 +19,35 @@
 // b = (~sel[1] ^ sel[0] ^ in);
 // c = (sel[1] ^ ~sel[0] ^ in);
 // d = (sel[1] ^ sel[0] ^ in);
+// CHIP DMux4Way {
+//     IN in, sel[2];
+//     OUT a, b, c, d;
+
+//     PARTS:
+//     Not(in=sel[0], out=notsel0);
+//     Not(in=sel[1], out=notsel1);
+    
+//     And3Way(a=notsel1, b=notsel0, c=in, out=a);
+//     And3Way(a=notsel1, b=sel[0], c=in, out=b);
+//     And3Way(a=sel[1], b=notsel0, c=in, out=c);
+//     And3Way(a=sel[1], b=sel[0], c=in, out=d);
+// }
+
+
 CHIP DMux4Way {
     IN in, sel[2];
     OUT a, b, c, d;
 
     PARTS:
-    Not(in=sel[0], out=notsel0);
     Not(in=sel[1], out=notsel1);
-    
-    And3Way(a=notsel1, b=notsel0, c=in, out=a);
-    And3Way(a=notsel1, b=sel[0], c=in, out=b);
-    And3Way(a=sel[1], b=notsel0, c=in, out=c);
-    And3Way(a=sel[1], b=sel[0], c=in, out=d);
+
+    DMux(in=in, sel=sel[0], a=t1, b=t2);
+    And2(
+        a[0]=t1, a[1]=t2,
+        b[0]=notsel1, b[1]=notsel1,
+        out[0]=a, out[1]=b);
+    And2(
+        a[0]=t1, a[1]=t2,
+        b[0]=sel[1], b[1]=sel[1],
+        out[0]=c, out[1]=d);
 }
