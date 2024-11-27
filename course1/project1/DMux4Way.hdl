@@ -3,8 +3,22 @@
  * [a, b, c, d] = [in, 0, 0, 0] if sel = 00
  *                [0, in, 0, 0] if sel = 01
  *                [0, 0, in, 0] if sel = 10
- *                [0, 0, 0, in] if sel = 11
+ *                [0, 0, 0, in] if sel = 11'
  */
+
+// in sel1 sel0 a b c d
+// 0   0    0   0 0 0 0 
+// 0   0    1   0 0 0 0 
+// 0   1    0   0 0 0 0 
+// 0   1    1   0 0 0 0 
+// 1   0    0   1 0 0 0 
+// 1   0    1   0 1 0 0 
+// 1   1    0   0 0 1 0 
+// 1   1    1   0 0 0 1 
+// a = (~sel[1] ^ ~sel[0] ^ in);
+// b = (~sel[1] ^ sel[0] ^ in);
+// c = (sel[1] ^ ~sel[0] ^ in);
+// d = (sel[1] ^ sel[0] ^ in);
 CHIP DMux4Way {
     IN in, sel[2];
     OUT a, b, c, d;
@@ -13,19 +27,8 @@ CHIP DMux4Way {
     Not(in=sel[0], out=notsel0);
     Not(in=sel[1], out=notsel1);
     
-    // a = (~sel[0] ^ ~sel[1] ^ in) v 0;
-    And3Way(a=notsel0, b=notsel1, c=in, out=aTemp);
-    Or(a=aTemp, b=false, out=a);
-
-    // b = (sel[0] ^ ~sel[1] ^ in) v 0;
-    And3Way(a=sel[0], b=notsel1, c=in, out=bTemp);
-    Or(a=bTemp, b=false, out=b);
-
-    // c = (~sel[0] ^ sel[1] ^ in) v 0;
-    And3Way(a=notsel0, b=sel[1], c=in, out=cTemp);
-    Or(a=cTemp, b=false, out=c);
-
-    // d = (sel[0] ^ sel[1] ^ in) v 0;
-    And3Way(a=sel[0], b=sel[1], c=in, out=dTemp);
-    Or(a=dTemp, b=false, out=d);
+    And3Way(a=notsel1, b=notsel0, c=in, out=a);
+    And3Way(a=notsel1, b=sel[0], c=in, out=b);
+    And3Way(a=sel[1], b=notsel0, c=in, out=c);
+    And3Way(a=sel[1], b=sel[0], c=in, out=d);
 }
