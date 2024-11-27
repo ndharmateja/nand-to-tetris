@@ -1,0 +1,55 @@
+/**
+ * 8-way demultiplexor:
+ * [a, b, c, d, e, f, g, h] = [in, 0,  0,  0,  0,  0,  0,  0] if sel = 000
+ *                            [0, in,  0,  0,  0,  0,  0,  0] if sel = 001
+ *                            [0,  0, in,  0,  0,  0,  0,  0] if sel = 010
+ *                            [0,  0,  0, in,  0,  0,  0,  0] if sel = 011
+ *                            [0,  0,  0,  0, in,  0,  0,  0] if sel = 100
+ *                            [0,  0,  0,  0,  0, in,  0,  0] if sel = 101
+ *                            [0,  0,  0,  0,  0,  0, in,  0] if sel = 110
+ *                            [0,  0,  0,  0,  0,  0,  0, in] if sel = 111
+ */
+
+// in sel2 sel1 sel0 a b c d e f g h
+// 0   0    0    0   0 0 0 0 0 0 0 0
+// 0   0    0    1   0 0 0 0 0 0 0 0
+// 0   0    1    0   0 0 0 0 0 0 0 0
+// 0   0    1    1   0 0 0 0 0 0 0 0
+// 0   1    0    0   0 0 0 0 0 0 0 0
+// 0   1    0    1   0 0 0 0 0 0 0 0
+// 0   1    1    0   0 0 0 0 0 0 0 0
+// 0   1    1    1   0 0 0 0 0 0 0 0
+// 1   0    0    0   1 0 0 0 0 0 0 0
+// 1   0    0    1   0 1 0 0 0 0 0 0
+// 1   0    1    0   0 0 1 0 0 0 0 0
+// 1   0    1    1   0 0 0 1 0 0 0 0
+// 1   1    0    0   0 0 0 0 1 0 0 0
+// 1   1    0    1   0 0 0 0 0 1 0 0
+// 1   1    1    0   0 0 0 0 0 0 1 0
+// 1   1    1    1   0 0 0 0 0 0 0 1
+// a = (~sel[2] ^ ~sel[1] ^ ~sel[0] ^ in);
+// b = (~sel[2] ^ ~sel[1] ^ sel[0] ^ in);
+// c = (~sel[2] ^ sel[1] ^ ~sel[0] ^ in);
+// d = (~sel[2] ^ sel[1] ^ sel[0] ^ in);
+// e = (sel[2] ^ ~sel[1] ^ ~sel[0] ^ in);
+// f = (sel[2] ^ ~sel[1] ^ sel[0] ^ in);
+// g = (sel[2] ^ sel[1] ^ ~sel[0] ^ in);
+// h = (sel[2] ^ sel[1] ^ sel[0] ^ in);
+CHIP DMux8Way {
+    IN in, sel[3];
+    OUT a, b, c, d, e, f, g, h;
+
+    PARTS:
+    Not(in=sel[0], out=notsel0);
+    Not(in=sel[1], out=notsel1);
+    Not(in=sel[2], out=notsel2);
+
+    And4Way(a=notsel2, b=notsel1, c=notsel0, d=in, out=a);
+    And4Way(a=notsel2, b=notsel1, c=sel[0], d=in, out=b);
+    And4Way(a=notsel2, b=sel[1], c=notsel0, d=in, out=c);
+    And4Way(a=notsel2, b=sel[1], c=sel[0], d=in, out=d);
+    And4Way(a=sel[2], b=notsel1, c=notsel0, d=in, out=e);
+    And4Way(a=sel[2], b=notsel1, c=sel[0], d=in, out=f);
+    And4Way(a=sel[2], b=sel[1], c=notsel0, d=in, out=g);
+    And4Way(a=sel[2], b=sel[1], c=sel[0], d=in, out=h);
+}
