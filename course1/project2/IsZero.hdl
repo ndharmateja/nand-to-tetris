@@ -1,0 +1,14 @@
+/**
+ * IsZero: 
+ * if in == 0000000000000000 then out = 1 else out = 0
+ */
+CHIP IsZero {
+    IN in[16];
+    OUT out;
+
+    PARTS:
+    Or8Way(in=in[0..7], out=or1);
+    Or8Way(in=in[8..15], out=or2);
+    Or(a=or1, b=or2, out=or12);
+    Not(in=or12, out=out);
+}
