@@ -1,43 +1,28 @@
 // Pseudo code:
-// x = RAM[0]
-// y = RAM[1]
-// i = 0, product = 0
-// for(i=0; i<y; i++) {
-//     product = product + x;
+// i = 0, RAM[2] = 0
+// for(i=0; i<RAM[1]; i++) {
+//     RAM[2] = RAM[2] + RAM[0];
 // }
-// RAM[2] = product
 
-    // x = RAM[0]
-    @R0
-    D=M
-    @x
-    M=D
-
-    // y = RAM[1]
-    @R1
-    D=M
-    @y
-    M=D
-
-    // i = 0, product = 0
+    // i = 0, RAM[2] = 0
     @i
     M=0
-    @product
+    @R2
     M=0
 
 (LOOP)
-    // Jump to LOOPEND if i == n
+    // Jump to LOOPEND if i == RAM[1]
     @i
     D=M
-    @y
+    @R1
     D=D-M
-    @LOOPEND
+    @END
     D;JGE
 
-    // Add x to product
-    @x
+    // Add RAM[0] to RAM[2]
+    @R0
     D=M
-    @product
+    @R2
     M=D+M
 
     // i++ and jump to LOOP
@@ -45,12 +30,6 @@
     M=M+1
     @LOOP
     0;JMP
-(LOOPEND)
-
-    @product
-    D=M
-    @R2
-    M=D
 
 (END)
     @END
