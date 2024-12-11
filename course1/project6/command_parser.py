@@ -88,18 +88,6 @@ class CommandParser:
             label = self.get_label(command)
             self.symbol_table.put(label, self.command_count)
 
-    # Get the 15-bit binary representation of a number
-    def int_to_binary(self, value: int):
-        if value == 0:
-            return "0"
-        return self.int_to_binary(value // 2) + str(value % 2)
-
-    # Pad a string with zeros on the left until it is 15 characters long
-    def pad_zeros(self, string):
-        if len(string) > 15:
-            return string[1:]
-        return (15 - len(string)) * "0" + string
-
     def parse_a_instruction(self, a_instruction):
         symbol = a_instruction[1:]
         try:
@@ -116,8 +104,8 @@ class CommandParser:
             # Retrieve the value associated with the symbol
             value = self.symbol_table.get(symbol)
 
-        # Return the 15-bit binary value of the address
-        return "0" + self.pad_zeros(self.int_to_binary(value))
+        # Return the op code (0) + 15-bit binary representation of the value
+        return "0" + format(value, "015b")
 
     def parse_c_instruction(self, c_instruction: str):
         if "=" not in c_instruction:
