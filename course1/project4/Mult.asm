@@ -11,7 +11,7 @@
     M=0
 
 (LOOP)
-    // Jump to LOOPEND if i == RAM[1]
+    // Jump to END if i == RAM[1]
     @i
     D=M
     @R1
