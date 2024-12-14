@@ -75,11 +75,19 @@ class CodeWriter:
         elif segment == "pointer":
             loc = "THIS" if index == 0 else "THAT"
             if command_type == CommandType.C_PUSH:
-                self.output += f"*SP={loc}\n"
+                self.output += f"// *SP = {loc}\n"
+                self.output += f"// D = {loc}\n"
+                self.output += f"@{loc}\n"
+                self._load_register_into_register(dest="D", src="M")
+                self._load_d_into_stack_ptr()
                 self._increment_stack_ptr()
             elif command_type == CommandType.C_POP:
                 self._decrement_stack_ptr()
-                self.output += f"{loc}=*SP\n"
+                self.output += f"// {loc} = *SP\n"
+                self._load_stack_ptr_value_into_d()
+                self.output += f"// {loc} = D\n"
+                self.output += f"@{loc}\n"
+                self._load_register_into_register(dest="M", src="D")
 
         self.f.write(self.output)
         print(self.output, end="")
