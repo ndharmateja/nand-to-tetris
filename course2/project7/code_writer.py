@@ -7,6 +7,7 @@ class CodeWriter:
     def __init__(self, filename):
         self.filename = filename
         self.f = open(self.filename, "w")
+        self.label_counter = 0
 
     def _load_ptr_into_stack(self, var_name="addr"):
         self.output += f"// *SP = *{var_name}\n"
@@ -101,9 +102,9 @@ class CodeWriter:
         self._load_stack_ptr_value_into_d()
 
         if command == "add" or command == "sub" or command == "or" or command == "and":
-            self._decrement_stack_ptr()
             if command == "sub":
                 self._negate_d()  # -D+M for subtraction
+            self._decrement_stack_ptr()
             self._perform_op_stack_ptr_value_into_d(command)
         elif command == "neg":
             self._negate_d()
@@ -111,13 +112,60 @@ class CodeWriter:
             self._not_d()
         else:
             # for eq, lt, gt
-            pass
+            self._negate_d()
+
+            # SP--
+            # D = D + *SP
+            # D;JEQ/JLT/JGT
+            self._decrement_stack_ptr()
+            self._perform_addition_stack_ptr_value_into_d_comparison(command)
+
+            # D = 0 (False)
+            self._load_constant_into_d(0)
+            # jump to end label
+            self.output += "// jump to end label\n"
+            self.output += f"@{self._get_end_label()}\n"
+            self.output += "0;JMP\n"
+
+            # (eq/lt/gt) label
+            # D = -1 (True)
+            self.output += f"({self._get_if_label(command)})\n"
+            self._load_constant_into_d(0)
+            self._decrement_d()  # for -1 (True)
+
+            # end label
+            self.output += f"({self._get_end_label()})\n"
+            self.label_counter += 1
 
         self._load_d_into_stack_ptr()
         self._increment_stack_ptr()
 
         self.f.write(self.output)
         print(self.output, end="")
+
+    def _decrement_d(self):
+        self.output += "D=D-1\n"
+
+    def _get_if_label(self, command):
+        return f"{command}_{self.label_counter}"
+
+    def _get_end_label(self):
+        return f"end_{self.label_counter}"
+
+    def _perform_addition_stack_ptr_value_into_d_comparison(self, command):
+        op = "+"
+        if command == "eq":
+            jump = "JEQ"
+        elif command == "lt":
+            jump = "JLT"
+        else:
+            jump = "JGT"
+        self.output += f"// D = D {op} *SP\n"
+        self.output += "@SP\n"
+        self._load_register_into_register(dest="A", src="M")
+        self.output += f"D=D{op}M\n"
+        self.output += f"@{self._get_if_label(command)}\n"
+        self.output += f"D;{jump}\n"
 
     def _decrement_stack_ptr(self):
         self.output += "// SP--\n"
@@ -156,9 +204,11 @@ class CodeWriter:
         self._load_register_into_register(dest="M", src="D")
 
     def _negate_d(self):
+        self.output += "// D = -D\n"
         self.output += "D=-D\n"
 
     def _not_d(self):
+        self.output += "// D = !D\n"
         self.output += "D=!D\n"
 
     def _load_constant_into_d(self, index):
